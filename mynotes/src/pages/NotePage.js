@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect} from 'react'
 
 //import notes from '../assets/data'
@@ -17,36 +18,43 @@ import { ReactComponent as ArrowLeft } from '../assets/arrow-left.svg';
     let getNote = async () => {
       if (id === 'new') return
 
-      let response = await fetch(`http://localhost:8000/notes/${id}`)
+      let response = await fetch(`/api/notes/${id}`)
       let data = await response.json()
       console.log(data)
       setNotes(data)
     }
 
   let createNote = async () =>{
-    await fetch(`http://localhost:8000/notes/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ ...note, 'updated': new Date()})
-    })
+    if(note.body){
+      await fetch(`/api/notes/create/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(note)
+      })
+    }
+    else{
+      navigate('/')
+    }
   }
 
-
   let updateNote = async () =>{
-    await fetch(`http://localhost:8000/notes/${id}`, {
+    await fetch(`/api/notes/${id}/update/`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ ...note, 'updated': new Date()})
+      body: JSON.stringify(note)
     })
   }
 
   let deleteNote = async () =>{
-    await fetch(`http://localhost:8000/notes/${id}`, {
+    await fetch(`/api/notes/${id}/delete/`, {
       method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
     })
     navigate('/')
   }
@@ -55,15 +63,19 @@ import { ReactComponent as ArrowLeft } from '../assets/arrow-left.svg';
 
     if (id !== "new" && !note.body) {
       deleteNote()
-  } else if (id !== "new") {
+    } else if (id !== "new") {
       updateNote()
-  } else if (id === 'new' && note !== null) {
+    } else if (id === 'new' && note.body !== null) {
       createNote()
-  }
-
-    updateNote()
+    }
     navigate('/')
   }
+
+  let handleChange = (value) => {
+    setNotes(note => ({ ...note, 'body': value }))
+    console.log('Handle Change:', note)
+  }
+
 
   return (
     <div className='note'>
@@ -81,9 +93,7 @@ import { ReactComponent as ArrowLeft } from '../assets/arrow-left.svg';
         )}
       </div>
         
-        <textarea onChange={(e)=> {setNotes({...note, 'body':e.target.value}) }} value={note?.body}>
-
-        </textarea>
+      <textarea onChange={(e) => { handleChange(e.target.value) }} value={note?.body}></textarea>
     </div>
   )
 }
